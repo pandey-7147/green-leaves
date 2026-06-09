@@ -50,8 +50,9 @@ OFFERINGS
 ----------------------------------------------------------------
 - Restaurant: specialty coffee + standard Thakali set (the anchor),
   with an "Economical access" budget tier in a later phase.
-- EV Charging: 2 × 60 kW fast chargers (one unit may charge 2
-  vehicles at once, ~30 min).
+- EV Charging: 1 × 60 kW dual-gun DC fast charger — two connectors,
+  charges 2 vehicles at once (~30 min). (Full-build option scales to
+  2 units later.)
 - Attractions (see below) — the reasons to choose this stop.
 
 ----------------------------------------------------------------
@@ -69,7 +70,7 @@ ROADMAP (Phase 1)
 ----------------------------------------------------------------
 Finalize location & lease → business registration & permits →
 prepare loan proposal/financials → secure business loan →
-electrical/grid connection → procure 2 × 60 kW chargers →
+electrical/grid connection → procure 60 kW dual-gun charger →
 construction/fit-out → hire & train staff → soft launch →
 grand opening (24/7).
 Future phases: economical food tier · second site · loyalty +
@@ -78,10 +79,14 @@ reserve-a-charger app.
 ----------------------------------------------------------------
 BUDGET (admin-only, /#admin + PIN)
 ----------------------------------------------------------------
-Editable line items (placeholder NPR figures): land/lease,
-construction/fit-out, kitchen equipment, 2 × 60 kW chargers +
-electrical/grid, furniture, signage, working capital, licenses.
-Live auto-summing total, saved in the browser. Funded via loan.
+Two switchable scenarios, both editable, with live auto-summing
+totals saved in the browser:
+  • LEAN (default, under NPR 1 crore): one 60 kW dual-gun charger,
+    ~1,200 sq ft basic build, essential kitchen. Total ≈ NPR 93 lakh.
+  • FULL build (~NPR 2.4 crore): ~2,500 sq ft, 2 charger units,
+    full amenities — the eventual target once funded.
+Figures are June-2026 market-research midpoints (NOT vendor quotes);
+sources are listed in the tracker. Funded via business loan.
 NOTE: the PIN gate only hides costs from casual viewers — it runs
 in the browser and is not strong security.
 

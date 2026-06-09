@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BUDGET } from '../data/plan.js'
+import { BUDGET_SCENARIOS, BUDGET_SOURCES, LEAN_CAP } from '../data/plan.js'
 
-const STORAGE_KEY = 'green-leaves.budget.v1'
+const storageKey = (scenarioId) => `green-leaves.budget.${scenarioId}.v1`
 
 const npr = new Intl.NumberFormat('en-NP', {
   style: 'currency',
@@ -9,32 +9,48 @@ const npr = new Intl.NumberFormat('en-NP', {
   maximumFractionDigits: 0,
 })
 
-function loadBudget() {
+function seedFor(scenarioId) {
+  return BUDGET_SCENARIOS.find((s) => s.id === scenarioId) ?? BUDGET_SCENARIOS[0]
+}
+
+function loadRows(scenarioId) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(storageKey(scenarioId))
     if (raw) return JSON.parse(raw)
   } catch {
     // ignore corrupt/unavailable storage — fall back to seed
   }
-  return BUDGET
+  return seedFor(scenarioId).rows
 }
 
 export default function CostTracker() {
-  const [rows, setRows] = useState(loadBudget)
+  const [scenarioId, setScenarioId] = useState(BUDGET_SCENARIOS[0].id)
+  const [rows, setRows] = useState(() => loadRows(BUDGET_SCENARIOS[0].id))
   const [label, setLabel] = useState('')
+
+  const scenario = seedFor(scenarioId)
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(rows))
+      localStorage.setItem(storageKey(scenarioId), JSON.stringify(rows))
     } catch {
       // storage unavailable — keep working in-memory
     }
-  }, [rows])
+  }, [rows, scenarioId])
+
+  function switchScenario(id) {
+    if (id === scenarioId) return
+    setScenarioId(id)
+    setRows(loadRows(id))
+  }
 
   const total = useMemo(
     () => rows.reduce((sum, r) => sum + (Number(r.amount) || 0), 0),
     [rows],
   )
+
+  const isLean = scenarioId === 'lean'
+  const underCap = total <= LEAN_CAP
 
   function updateAmount(id, value) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, amount: value } : r)))
@@ -57,7 +73,7 @@ export default function CostTracker() {
   }
 
   function reset() {
-    setRows(BUDGET)
+    setRows(seedFor(scenarioId).rows)
   }
 
   return (
@@ -66,7 +82,7 @@ export default function CostTracker() {
         <div>
           <h2 className="text-3xl font-bold text-leaf-900">Cost tracker</h2>
           <p className="mt-2 text-leaf-900/70">
-            Rough budget — edit any figure; the total updates live and saves in your browser.
+            Edit any figure; the total updates live and saves in your browser.
           </p>
         </div>
         <button
@@ -77,7 +93,26 @@ export default function CostTracker() {
         </button>
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-2xl border border-leaf-100 bg-white">
+      {/* scenario switcher */}
+      <div className="mt-6 inline-flex rounded-xl border border-leaf-200 bg-white p-1">
+        {BUDGET_SCENARIOS.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => switchScenario(s.id)}
+            className={
+              'rounded-lg px-4 py-1.5 text-sm font-semibold transition ' +
+              (s.id === scenarioId
+                ? 'bg-leaf-600 text-white shadow-sm'
+                : 'text-leaf-700 hover:bg-leaf-100')
+            }
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-sm text-leaf-900/60">{scenario.blurb}</p>
+
+      <div className="mt-5 overflow-hidden rounded-2xl border border-leaf-100 bg-white">
         <table className="w-full text-left">
           <thead className="bg-leaf-50 text-xs uppercase tracking-wide text-leaf-600">
             <tr>
@@ -93,10 +128,11 @@ export default function CostTracker() {
                   <input
                     value={r.label}
                     onChange={(e) => updateLabel(r.id, e.target.value)}
-                    className="w-full rounded-md border border-transparent bg-transparent px-2 py-1 outline-none hover:border-leaf-100 focus:border-leaf-300 focus:bg-leaf-50"
+                    className="w-full rounded-md border border-transparent bg-transparent px-2 py-1 font-medium outline-none hover:border-leaf-100 focus:border-leaf-300 focus:bg-leaf-50"
                   />
+                  {r.note && <p className="px-2 text-xs leading-snug text-leaf-900/50">{r.note}</p>}
                 </td>
-                <td className="px-4 py-2 text-right">
+                <td className="px-4 py-2 align-top text-right">
                   <input
                     type="number"
                     min="0"
@@ -105,7 +141,7 @@ export default function CostTracker() {
                     className="w-40 rounded-md border border-leaf-200 px-2 py-1 text-right outline-none focus:border-leaf-500 focus:ring-2 focus:ring-leaf-200"
                   />
                 </td>
-                <td className="px-2 py-2 text-center">
+                <td className="px-2 py-2 align-top text-center">
                   <button
                     onClick={() => remove(r.id)}
                     aria-label="Delete row"
@@ -127,6 +163,25 @@ export default function CostTracker() {
         </table>
       </div>
 
+      {/* under / over 1 crore indicator (lean scenario) */}
+      {isLean && (
+        <div
+          className={
+            'mt-3 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ' +
+            (underCap
+              ? 'bg-leaf-100 text-leaf-800'
+              : 'bg-amber-100 text-amber-800')
+          }
+        >
+          <span>{underCap ? '✓' : '⚠'}</span>
+          <span>
+            {underCap
+              ? `Under the NPR 1 crore target (${npr.format(LEAN_CAP - total)} headroom).`
+              : `Over the NPR 1 crore target by ${npr.format(total - LEAN_CAP)}.`}
+          </span>
+        </div>
+      )}
+
       <form onSubmit={addRow} className="mt-4 flex flex-wrap gap-3">
         <input
           value={label}
@@ -143,9 +198,29 @@ export default function CostTracker() {
       </form>
 
       <p className="mt-4 text-sm text-leaf-900/50">
-        Funding plan: financed via a business loan. Figures are placeholders — replace with real
-        quotes as you gather them.
+        Funding plan: financed via a business loan. Figures are <strong>market-research midpoints
+        (June 2026)</strong>, not vendor quotes — replace with real numbers as you gather them.
       </p>
+
+      {BUDGET_SOURCES?.length > 0 && (
+        <details className="mt-3 rounded-lg border border-leaf-100 bg-leaf-50 p-4 text-sm">
+          <summary className="cursor-pointer font-semibold text-leaf-700">Research sources</summary>
+          <ul className="mt-2 list-disc space-y-1 pl-5 text-leaf-900/60">
+            {BUDGET_SOURCES.map((s) => (
+              <li key={s.url}>
+                <a
+                  href={s.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-leaf-700 underline hover:text-leaf-800"
+                >
+                  {s.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   )
 }

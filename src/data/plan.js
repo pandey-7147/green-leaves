@@ -13,7 +13,7 @@ export const BUSINESS = {
 
 // Change this to lock/unlock the admin cost view at /#admin.
 // NOTE: client-side only — anyone who reads the page source can find it. Not real security.
-export const ADMIN_PIN = '1234'
+export const ADMIN_PIN = '5075'
 
 export const OFFERINGS = [
   {
@@ -23,8 +23,8 @@ export const OFFERINGS = [
   },
   {
     icon: '🔌',
-    title: 'EV Charging — 2 × 60 kW',
-    desc: 'Two 60 kW fast chargers (one unit can charge 2 vehicles at once, ~30 min). Charge while you eat — the stop pays for itself in dwell time.',
+    title: 'EV Charging — 60 kW dual-gun',
+    desc: 'One 60 kW DC fast charger with two connectors — charges 2 vehicles at once (~30 min). Charge while you eat; the stop pays for itself in dwell time.',
   },
   {
     icon: '☕',
@@ -121,7 +121,7 @@ export const SEED_MILESTONES = [
   { id: 'loan-prep', text: 'Prepare loan proposal / financials', done: false, group: 'Phase 1' },
   { id: 'loan', text: 'Secure business loan', done: false, group: 'Phase 1' },
   { id: 'grid', text: 'Electrical capacity / grid connection for chargers', done: false, group: 'Phase 1' },
-  { id: 'chargers', text: 'Procure 2 × 60 kW EV chargers', done: false, group: 'Phase 1' },
+  { id: 'chargers', text: 'Procure 60 kW dual-gun EV charger (charges 2 cars)', done: false, group: 'Phase 1' },
   { id: 'build', text: 'Construction / fit-out', done: false, group: 'Phase 1' },
   { id: 'staff', text: 'Hire & train staff', done: false, group: 'Phase 1' },
   { id: 'soft', text: 'Soft launch', done: false, group: 'Phase 1' },
@@ -132,14 +132,157 @@ export const SEED_MILESTONES = [
   { id: 'app', text: 'Loyalty & reserve-a-charger app launch', done: false, group: 'Future', phase: 'future' },
 ]
 
-// Budget snapshot — placeholder NPR figures, fully editable in the admin cost tracker.
-export const BUDGET = [
-  { id: 'land', label: 'Land / lease (deposit + first year)', amount: 2500000 },
-  { id: 'construction', label: 'Construction / fit-out', amount: 4000000 },
-  { id: 'kitchen', label: 'Kitchen equipment', amount: 1500000 },
-  { id: 'chargers', label: '2 × 60 kW EV chargers + electrical/grid', amount: 5000000 },
-  { id: 'furniture', label: 'Furniture & lounge', amount: 1000000 },
-  { id: 'signage', label: 'Signage & highway visibility', amount: 600000 },
-  { id: 'working', label: 'Working capital (3 months)', amount: 1500000 },
-  { id: 'licenses', label: 'Licenses & permits', amount: 400000 },
+// Target ceiling for the lean plan (NPR 1 crore = 10,000,000).
+export const LEAN_CAP = 10000000
+
+// Two budget scenarios, switchable in the admin cost tracker. NPR. `note` gives the
+// researched basis/range (June 2026). These are market-research midpoints, NOT vendor
+// quotes — replace with real numbers as you gather them. Sources in BUDGET_SOURCES.
+//   • lean: Phase-1 minimum — one dual-gun charger, smaller build, essentials. Under NPR 1 crore.
+//   • full: larger build, 2 charger units, full amenities (~NPR 2.4 crore).
+export const BUDGET_SCENARIOS = [
+  {
+    id: 'lean',
+    label: 'Lean — under NPR 1 crore',
+    blurb: 'Phase-1 minimum to open: one dual-gun charger, a smaller build, essentials only. Add the rest from cash flow once running.',
+    rows: [
+      {
+        id: 'land',
+        label: 'Land lease (deposit + first year)',
+        amount: 800000,
+        note: 'Lease, not purchase. Modest rural plot between Butwal & Sunwal — far cheaper than Butwal-16 commercial (~Rs 30 lakh/kattha to buy). Local quote needed.',
+      },
+      {
+        id: 'construction',
+        label: 'Construction / fit-out (~1,200 sq ft, basic)',
+        amount: 3000000,
+        note: 'Basic-finish commercial build at ~Rs 2,500/sq ft (range Rs 2,500–5,000). Start small, expand later.',
+      },
+      {
+        id: 'kitchen',
+        label: 'Essential kitchen equipment',
+        amount: 700000,
+        note: 'Core 24/7 kitchen only (range, fryer, refrigeration, basic SS fabrication); add equipment as menu grows.',
+      },
+      {
+        id: 'charger',
+        label: '1 × 60 kW dual-gun DC charger (2 cars at once)',
+        amount: 2000000,
+        note: 'One unit, two connectors — charges 2 vehicles at once (~30 min). Nepal DC fast Rs 15–50 lakh; entry/mid 60 kW unit ≈ Rs 20 lakh.',
+      },
+      {
+        id: 'grid',
+        label: 'Transformer + grid connection (~150 kVA)',
+        amount: 700000,
+        note: 'Smaller load for a single unit. EV transformer/electrical Rs 10–20 lakh range — lower end here.',
+      },
+      {
+        id: 'ev-civil',
+        label: 'Charger installation & civil work',
+        amount: 300000,
+        note: 'Pad, small canopy, cabling for one charger. Install/civil Rs 5–15 lakh range — lower end.',
+      },
+      {
+        id: 'furniture',
+        label: 'Furniture & small waiting area',
+        amount: 400000,
+        note: 'Basic dining furniture + a modest EV waiting corner.',
+      },
+      {
+        id: 'signage',
+        label: 'Signage & highway visibility',
+        amount: 300000,
+        note: 'One illuminated highway-facing sign — essential for being seen at night.',
+      },
+      {
+        id: 'working',
+        label: 'Working capital (3 months)',
+        amount: 800000,
+        note: 'Lean shift staffing (waiters Rs 20–50k/mo) + 3 months inventory + utilities.',
+      },
+      {
+        id: 'licenses',
+        label: 'Licenses, permits & EV registration',
+        amount: 300000,
+        note: 'Business registration, food permit, EV charging station registration.',
+      },
+    ],
+  },
+  {
+    id: 'full',
+    label: 'Full build',
+    blurb: 'Larger ~2,500 sq ft build, 2 charger units, and full amenities. The eventual target once funded.',
+    rows: [
+      {
+        id: 'land',
+        label: 'Land lease (deposit + first year)',
+        amount: 1500000,
+        note: 'Lease, not purchase. Butwal-16 commercial land sells ~Rs 30 lakh/kattha; a rural Butwal–Sunwal plot leases for far less.',
+      },
+      {
+        id: 'construction',
+        label: 'Construction / fit-out (~2,500 sq ft)',
+        amount: 8500000,
+        note: 'Commercial build Rs 2,500–5,000/sq ft; ~Rs 3,500 × 2,500 sq ft for restaurant + lounge + restrooms.',
+      },
+      {
+        id: 'kitchen',
+        label: 'Commercial kitchen equipment',
+        amount: 2000000,
+        note: 'Full 24/7 kitchen (ranges, fryers, refrigeration, SS fabrication) from Nepal suppliers.',
+      },
+      {
+        id: 'chargers',
+        label: '2 × 60 kW DC fast chargers (hardware)',
+        amount: 5000000,
+        note: 'Nepal DC fast charger Rs 15–50 lakh; 70 kW ≈ Rs 25–40 lakh each. ~Rs 25 lakh × 2.',
+      },
+      {
+        id: 'grid',
+        label: 'Transformer + grid connection (~200 kVA)',
+        amount: 1500000,
+        note: 'EV transformer & electrical Rs 10–20 lakh; DC fast charging needs heavy load support (~200 kVA).',
+      },
+      {
+        id: 'ev-civil',
+        label: 'Charger installation & civil work',
+        amount: 1000000,
+        note: 'Installation + civil work Rs 5–15 lakh (canopy, foundations, cabling).',
+      },
+      {
+        id: 'furniture',
+        label: 'Furniture & EV waiting lounge',
+        amount: 1200000,
+        note: 'Dining furniture, lounge seating, fittings.',
+      },
+      {
+        id: 'signage',
+        label: 'Signage & highway visibility',
+        amount: 600000,
+        note: 'Illuminated highway-facing signage — the "see it from the road" differentiator.',
+      },
+      {
+        id: 'working',
+        label: 'Working capital (3 months)',
+        amount: 3000000,
+        note: '24/7 means ~15–20 staff across shifts. Waiters Rs 20–50k/mo, cooks/chefs higher; plus 3 months inventory + utilities.',
+      },
+      {
+        id: 'licenses',
+        label: 'Licenses, permits & EV station registration',
+        amount: 500000,
+        note: 'Business registration, food/hospitality permits, and EV charging station registration.',
+      },
+    ],
+  },
+]
+
+// Where the figures above come from (June 2026 web research).
+export const BUDGET_SOURCES = [
+  { label: 'EV charging station business in Nepal — cost & profit (Dongfeng Nepal)', url: 'https://dongfengnepal.com/how-to-start-ev-charging-stations-business-in-nepal-cost-requirements-profit-potential/' },
+  { label: 'EV charging station setup cost in Nepal (Aegen)', url: 'https://aegenevcharger.com/ev-charging-station-cost-in-nepal-commercial-vs-residential-setup/' },
+  { label: 'EV charging station installation cost in India 2025 (EV Truck India)', url: 'https://evtruckindia.com/ev-charging-station-installation-cost-in-india-2025-price-requirements-subsidy-roi/' },
+  { label: 'Per sq ft commercial construction cost in Nepal (House Design in Nepal)', url: 'https://housedesigninnepal.com/per-sq-ft-construction-cost-in-nepal/' },
+  { label: 'Commercial land for sale in Rupandehi/Butwal (Gharbazar)', url: 'https://www.gharbazar.com/property/details/commercial-land-for-sale-in-rupandehi-butwal-11263' },
+  { label: 'Average waiter salary in Nepal 2025 (WorldSalaries)', url: 'https://worldsalaries.com/average-waiter-waitress-salary-in-nepal/' },
 ]
