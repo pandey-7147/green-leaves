@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { BUDGET_SCENARIOS, BUDGET_SOURCES, LEAN_CAP } from '../data/plan.js'
+import { BUDGET_SCENARIOS, BUDGET_SOURCES } from '../data/plan.js'
 
 const storageKey = (scenarioId) => `green-leaves.budget.${scenarioId}.v1`
 
@@ -49,8 +49,8 @@ export default function CostTracker() {
     [rows],
   )
 
-  const isLean = scenarioId === 'lean'
-  const underCap = total <= LEAN_CAP
+  const cap = scenario.cap ?? null
+  const underCap = cap == null || total <= cap
 
   function updateAmount(id, value) {
     setRows((prev) => prev.map((r) => (r.id === id ? { ...r, amount: value } : r)))
@@ -163,21 +163,19 @@ export default function CostTracker() {
         </table>
       </div>
 
-      {/* under / over 1 crore indicator (lean scenario) */}
-      {isLean && (
+      {/* per-scenario budget-cap indicator */}
+      {cap != null && (
         <div
           className={
             'mt-3 flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium ' +
-            (underCap
-              ? 'bg-leaf-100 text-leaf-800'
-              : 'bg-amber-100 text-amber-800')
+            (underCap ? 'bg-leaf-100 text-leaf-800' : 'bg-amber-100 text-amber-800')
           }
         >
           <span>{underCap ? '✓' : '⚠'}</span>
           <span>
             {underCap
-              ? `Under the NPR 1 crore target (${npr.format(LEAN_CAP - total)} headroom).`
-              : `Over the NPR 1 crore target by ${npr.format(total - LEAN_CAP)}.`}
+              ? `Under the ${npr.format(cap)} target (${npr.format(cap - total)} headroom).`
+              : `Over the ${npr.format(cap)} target by ${npr.format(total - cap)}.`}
           </span>
         </div>
       )}

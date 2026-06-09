@@ -142,8 +142,65 @@ export const LEAN_CAP = 10000000
 //   • full: larger build, 2 charger units, full amenities (~NPR 2.4 crore).
 export const BUDGET_SCENARIOS = [
   {
+    id: 'leaseout',
+    label: 'Lease-out EV — under NPR 50 lakh',
+    cap: 5000000,
+    blurb: 'Restaurant + attractions only. EV charging is handed to a separate tender/operator who funds, runs, and keeps the charging profit — so all charger, transformer, and EV-civil costs leave our books. We may earn rent/footfall from the operator (income, not counted here).',
+    rows: [
+      {
+        id: 'land',
+        label: 'Land lease (deposit + first year)',
+        amount: 700000,
+        note: 'Lease, not purchase. Modest rural plot between Butwal & Sunwal. The EV operator can sub-lease its charging pad from us — potential income, not a cost.',
+      },
+      {
+        id: 'construction',
+        label: 'Construction / fit-out (~1,000 sq ft, basic)',
+        amount: 2000000,
+        note: 'Smallest viable footprint at ~Rs 2,000/sq ft (range Rs 2,500–5,000). Restaurant + restroom + counter.',
+      },
+      {
+        id: 'kitchen',
+        label: 'Essential kitchen equipment',
+        amount: 600000,
+        note: 'Core kitchen only (range, fryer, refrigeration); expand from cash flow.',
+      },
+      {
+        id: 'furniture',
+        label: 'Furniture & seating',
+        amount: 300000,
+        note: 'Basic dining furniture and fittings.',
+      },
+      {
+        id: 'sitework',
+        label: 'Site prep, parking & landscaping',
+        amount: 200000,
+        note: 'Basic parking surface and outdoor seating shared with the charging stop.',
+      },
+      {
+        id: 'signage',
+        label: 'Signage & highway visibility',
+        amount: 200000,
+        note: 'One illuminated highway sign — essential for night visibility.',
+      },
+      {
+        id: 'working',
+        label: 'Working capital (3 months)',
+        amount: 500000,
+        note: 'Lean staffing (waiters Rs 20–50k/mo) + inventory + utilities for 3 months.',
+      },
+      {
+        id: 'licenses',
+        label: 'Licenses & permits',
+        amount: 150000,
+        note: 'Business registration + food/hospitality permits. EV station registration is the operator’s responsibility.',
+      },
+    ],
+  },
+  {
     id: 'lean',
     label: 'Lean — under NPR 1 crore',
+    cap: 10000000,
     blurb: 'Phase-1 minimum to open: one dual-gun charger, a smaller build, essentials only. Add the rest from cash flow once running.',
     rows: [
       {
