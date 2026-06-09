@@ -11,7 +11,7 @@ const npr = new Intl.NumberFormat('en-NP', {
   maximumFractionDigits: 0,
 })
 
-// Compact "X.X L" / "X.XX Cr" for the table and labels.
+// Compact "X.X L" / "X.XX Cr".
 function lakh(n) {
   if (Math.abs(n) >= 10000000) return `${(n / 10000000).toFixed(2)} Cr`
   return `${(n / 100000).toFixed(1)} L`
@@ -31,6 +31,36 @@ function loadState() {
   return clone(SALES_DEFAULTS)
 }
 
+// One row of the calculation waterfall.
+function CalcRow({ label, value, sign, bold, result, loss }) {
+  return (
+    <div
+      className={
+        'flex items-baseline justify-between gap-4 px-4 py-2 ' +
+        (result ? 'border-t-2 border-leaf-200 ' : '') +
+        (bold ? 'font-bold ' : '')
+      }
+    >
+      <span className={result ? 'text-base text-leaf-900' : 'text-sm text-leaf-900/70'}>
+        {label}
+      </span>
+      <span
+        className={
+          'tabular-nums ' +
+          (result
+            ? 'text-2xl font-extrabold ' + (loss ? 'text-amber-700' : 'text-leaf-700')
+            : sign === '−'
+              ? 'text-leaf-900/70'
+              : 'text-leaf-900')
+        }
+      >
+        {sign && <span className="mr-1 text-leaf-900/40">{sign}</span>}
+        {npr.format(value)}
+      </span>
+    </div>
+  )
+}
+
 export default function SalesTracker() {
   const [s, setS] = useState(loadState)
 
@@ -43,23 +73,20 @@ export default function SalesTracker() {
   }, [s])
 
   const cogsPct = Number(s.cogsPct) || 0
-  const revenue = Number(s.monthlyRevenue) || 0
+  const sales = Number(s.monthlyRevenue) || 0
   const fixedTotal = useMemo(
     () => s.fixedCosts.reduce((sum, f) => sum + (Number(f.amount) || 0), 0),
     [s.fixedCosts],
   )
 
-  // net(rev) = rev * (1 - cogs%) - fixed
+  // net(sales) = sales − food − fixed
   const netAt = (rev) => rev * (1 - cogsPct / 100) - fixedTotal
 
-  const monthlyCogs = revenue * (cogsPct / 100)
-  const grossProfit = revenue - monthlyCogs
-  const netMonthly = grossProfit - fixedTotal
+  const foodCost = sales * (cogsPct / 100)
+  const netMonthly = sales - foodCost - fixedTotal
   const netAnnual = netMonthly * 12
-  const marginPct = revenue > 0 ? (netMonthly / revenue) * 100 : 0
-  // break-even revenue: net = 0  ->  rev = fixed / (1 - cogs%)
   const breakEven = cogsPct < 100 ? fixedTotal / (1 - cogsPct / 100) : Infinity
-  const profitable = netMonthly > 0
+  const profitable = netMonthly >= 0
 
   function setField(key, value) {
     setS((prev) => ({ ...prev, [key]: value }))
@@ -94,8 +121,7 @@ export default function SalesTracker() {
         <div>
           <h2 className="text-3xl font-bold text-leaf-900">Sales tracker</h2>
           <p className="mt-2 text-leaf-900/70">
-            Drag the monthly revenue and tune your costs to see net profit live — from a weak month
-            to a strong one.
+            Set how much you sell in a month, subtract your costs, and see what you keep.
           </p>
         </div>
         <button
@@ -106,18 +132,30 @@ export default function SalesTracker() {
         </button>
       </div>
 
-      {/* revenue slider */}
+      {/* STEP 1 — sales */}
       <div className="mt-6 rounded-2xl border border-leaf-100 bg-white p-5">
-        <div className="flex items-end justify-between">
-          <label className="text-sm font-medium text-leaf-900/70">Monthly revenue</label>
-          <span className="text-2xl font-bold text-leaf-800">{npr.format(revenue)}</span>
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-leaf-600 text-xs font-bold text-white">1</span>
+          <h3 className="font-semibold text-leaf-900">Monthly sales</h3>
+        </div>
+        <p className="mt-1 text-sm text-leaf-900/50">Total money customers pay you in a month.</p>
+        <div className="mt-3 flex items-end justify-between">
+          <input
+            type="number"
+            min="0"
+            step={SLIDER_STEP}
+            value={sales}
+            onChange={(e) => setField('monthlyRevenue', Number(e.target.value))}
+            className="w-48 rounded-lg border border-leaf-200 px-3 py-2 text-xl font-bold text-leaf-800 outline-none focus:border-leaf-500 focus:ring-2 focus:ring-leaf-200"
+          />
+          <span className="text-sm text-leaf-900/50">{lakh(sales)} / month</span>
         </div>
         <input
           type="range"
           min="0"
           max={SLIDER_MAX}
           step={SLIDER_STEP}
-          value={revenue}
+          value={sales}
           onChange={(e) => setField('monthlyRevenue', Number(e.target.value))}
           className="mt-3 w-full accent-leaf-600"
         />
@@ -125,71 +163,40 @@ export default function SalesTracker() {
           <span>0</span>
           <span>{lakh(SLIDER_MAX)}</span>
         </div>
-        <div className="mt-2 flex items-center gap-2 text-sm">
-          <span className="text-leaf-900/60">Exact:</span>
-          <input
-            type="number"
-            min="0"
-            step={SLIDER_STEP}
-            value={revenue}
-            onChange={(e) => setField('monthlyRevenue', Number(e.target.value))}
-            className="w-40 rounded-md border border-leaf-200 px-2 py-1 text-right outline-none focus:border-leaf-500 focus:ring-2 focus:ring-leaf-200"
-          />
-          <span className="text-leaf-900/50">NPR / month</span>
-        </div>
       </div>
 
-      {/* headline result */}
-      <div
-        className={
-          'mt-4 grid gap-3 rounded-2xl p-5 sm:grid-cols-2 ' +
-          (profitable ? 'bg-leaf-100' : 'bg-amber-100')
-        }
-      >
-        <div>
-          <p className="text-xs uppercase tracking-wide text-leaf-700/70">Net profit / month</p>
-          <p className={'text-3xl font-extrabold ' + (profitable ? 'text-leaf-800' : 'text-amber-800')}>
-            {npr.format(netMonthly)}
-          </p>
+      {/* STEP 2 — costs */}
+      <div className="mt-4 rounded-2xl border border-leaf-100 bg-white p-5">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-leaf-600 text-xs font-bold text-white">2</span>
+          <h3 className="font-semibold text-leaf-900">Monthly costs</h3>
         </div>
-        <div>
-          <p className="text-xs uppercase tracking-wide text-leaf-700/70">Net profit / year</p>
-          <p className={'text-3xl font-extrabold ' + (profitable ? 'text-leaf-800' : 'text-amber-800')}>
-            {npr.format(netAnnual)}
-          </p>
-        </div>
-      </div>
 
-      {/* cost inputs */}
-      <div className="mt-6 grid gap-6 sm:grid-cols-2">
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-wide text-leaf-600">
-            Food & supplies (variable)
-          </h3>
-          <label className="mt-2 flex items-center gap-2 text-sm">
+        {/* food % */}
+        <div className="mt-4">
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="font-medium text-leaf-900/80">Food &amp; supplies:</span>
             <input
               type="number"
               min="0"
               max="100"
               value={s.cogsPct}
               onChange={(e) => setField('cogsPct', e.target.value)}
-              className="w-24 rounded-md border border-leaf-200 px-2 py-1 text-right outline-none focus:border-leaf-500 focus:ring-2 focus:ring-leaf-200"
+              className="w-20 rounded-md border border-leaf-200 px-2 py-1 text-right outline-none focus:border-leaf-500 focus:ring-2 focus:ring-leaf-200"
             />
-            <span className="text-leaf-900/60">% of revenue</span>
-          </label>
-          <p className="mt-2 text-xs text-leaf-900/50">
-            = {npr.format(monthlyCogs)} / month at current revenue.
-          </p>
+            <span className="text-leaf-900/60">% of sales</span>
+            <span className="ml-auto font-semibold text-leaf-900">= {npr.format(foodCost)}</span>
+          </div>
+          <p className="mt-1 text-xs text-leaf-900/50">Grows with sales — busier months cost more in ingredients.</p>
         </div>
 
-        <div>
-          <h3 className="text-sm font-bold uppercase tracking-wide text-leaf-600">
-            Fixed monthly costs
-          </h3>
+        {/* fixed costs */}
+        <div className="mt-5">
+          <p className="text-sm font-medium text-leaf-900/80">Fixed costs (same every month):</p>
           <ul className="mt-2 space-y-1.5">
             {s.fixedCosts.map((f) => (
               <li key={f.id} className="group flex items-center gap-2">
-                <span className="flex-1 text-sm text-leaf-900/80">{f.label}</span>
+                <span className="flex-1 text-sm text-leaf-900/70">{f.label}</span>
                 <input
                   type="number"
                   min="0"
@@ -218,39 +225,57 @@ export default function SalesTracker() {
               Add
             </button>
           </form>
-          <p className="mt-2 text-xs font-medium text-leaf-700">
-            Fixed total: {npr.format(fixedTotal)} / month
-          </p>
+          <div className="mt-2 flex justify-between text-sm font-semibold text-leaf-700">
+            <span>Fixed costs total</span>
+            <span>{npr.format(fixedTotal)}</span>
+          </div>
         </div>
       </div>
 
-      {/* break-even + margin */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-leaf-100 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-leaf-600">Break-even revenue</p>
-          <p className="mt-1 text-lg font-bold text-leaf-900">
-            {breakEven === Infinity ? '—' : npr.format(breakEven)} / month
+      {/* STEP 3 — the calculation */}
+      <div className="mt-4 rounded-2xl border border-leaf-100 bg-white p-5">
+        <div className="flex items-center gap-2">
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-leaf-600 text-xs font-bold text-white">3</span>
+          <h3 className="font-semibold text-leaf-900">What you keep</h3>
+        </div>
+        <div className="mt-3 overflow-hidden rounded-xl bg-leaf-50">
+          <CalcRow label="Monthly sales" value={sales} />
+          <CalcRow label={`Food & supplies (${cogsPct}%)`} value={foodCost} sign="−" />
+          <CalcRow label="Fixed costs" value={fixedTotal} sign="−" />
+          <CalcRow label="Net profit / month" value={netMonthly} result bold loss={!profitable} />
+        </div>
+        <div className="mt-3 flex items-baseline justify-between rounded-xl bg-leaf-100 px-4 py-3">
+          <span className="font-semibold text-leaf-800">Net profit / year (× 12)</span>
+          <span className={'text-2xl font-extrabold tabular-nums ' + (profitable ? 'text-leaf-800' : 'text-amber-700')}>
+            {npr.format(netAnnual)}
+          </span>
+        </div>
+        {!profitable && (
+          <p className="mt-2 text-sm font-medium text-amber-800">
+            ⚠ At these sales you lose money each month. You need at least{' '}
+            <strong>{breakEven === Infinity ? '—' : npr.format(breakEven)}</strong> in monthly sales
+            just to break even.
           </p>
-          <p className="mt-1 text-xs text-leaf-900/50">Below this, the month runs at a loss.</p>
-        </div>
-        <div className="rounded-xl border border-leaf-100 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-leaf-600">Net margin (now)</p>
-          <p className="mt-1 text-lg font-bold text-leaf-900">{marginPct.toFixed(0)}%</p>
-          <p className="mt-1 text-xs text-leaf-900/50">Net profit as a share of revenue.</p>
-        </div>
+        )}
+        {profitable && breakEven !== Infinity && (
+          <p className="mt-2 text-sm text-leaf-900/60">
+            Break-even point: <strong>{npr.format(breakEven)}</strong> in monthly sales (below that,
+            the month runs at a loss).
+          </p>
+        )}
       </div>
 
       {/* sensitivity table */}
       <h3 className="mt-8 text-lg font-bold text-leaf-800">Weak month vs strong month</h3>
       <p className="mt-1 text-sm text-leaf-900/60">
-        Net profit at different monthly revenues (your current costs). The row nearest your slider
-        is highlighted.
+        Net profit at different monthly sales, using the costs above. Your current setting is
+        highlighted.
       </p>
       <div className="mt-3 overflow-hidden rounded-2xl border border-leaf-100 bg-white">
         <table className="w-full text-left text-sm">
           <thead className="bg-leaf-50 text-xs uppercase tracking-wide text-leaf-600">
             <tr>
-              <th className="px-4 py-3 font-semibold">Monthly revenue</th>
+              <th className="px-4 py-3 font-semibold">Monthly sales</th>
               <th className="px-4 py-3 text-right font-semibold">Net / month</th>
               <th className="px-4 py-3 text-right font-semibold">Net / year</th>
             </tr>
@@ -258,19 +283,16 @@ export default function SalesTracker() {
           <tbody>
             {SALES_REVENUE_POINTS.map((rev) => {
               const nm = netAt(rev)
-              const near = Math.abs(rev - revenue) <= SLIDER_STEP
+              const near = Math.abs(rev - sales) <= SLIDER_STEP
               return (
-                <tr
-                  key={rev}
-                  className={'border-t border-leaf-100 ' + (near ? 'bg-leaf-50' : '')}
-                >
+                <tr key={rev} className={'border-t border-leaf-100 ' + (near ? 'bg-leaf-50' : '')}>
                   <td className="px-4 py-2 font-medium text-leaf-900">
                     {npr.format(rev)} <span className="text-leaf-900/40">({lakh(rev)})</span>
                   </td>
-                  <td className={'px-4 py-2 text-right font-semibold ' + (nm >= 0 ? 'text-leaf-700' : 'text-amber-700')}>
+                  <td className={'px-4 py-2 text-right font-semibold tabular-nums ' + (nm >= 0 ? 'text-leaf-700' : 'text-amber-700')}>
                     {npr.format(nm)}
                   </td>
-                  <td className={'px-4 py-2 text-right ' + (nm >= 0 ? 'text-leaf-700' : 'text-amber-700')}>
+                  <td className={'px-4 py-2 text-right tabular-nums ' + (nm >= 0 ? 'text-leaf-700' : 'text-amber-700')}>
                     {npr.format(nm * 12)}
                   </td>
                 </tr>
@@ -281,9 +303,9 @@ export default function SalesTracker() {
       </div>
 
       <p className="mt-4 text-xs leading-relaxed text-leaf-900/50">
-        What-if model: net = revenue − food/supplies (% of revenue) − fixed monthly costs. It
-        excludes loan principal beyond the EMI line, depreciation, and tax. Revenue is your
-        assumption — tune the costs to your real quotes.
+        What-if model: Net profit = Sales − Food &amp; supplies − Fixed costs. It excludes loan
+        principal beyond the EMI line, depreciation, and tax. Sales is your assumption — tune the
+        costs to your real quotes.
       </p>
     </section>
   )
