@@ -343,3 +343,20 @@ export const BUDGET_SOURCES = [
   { label: 'Commercial land for sale in Rupandehi/Butwal (Gharbazar)', url: 'https://www.gharbazar.com/property/details/commercial-land-for-sale-in-rupandehi-butwal-11263' },
   { label: 'Average waiter salary in Nepal 2025 (WorldSalaries)', url: 'https://worldsalaries.com/average-waiter-waitress-salary-in-nepal/' },
 ]
+
+// Investment & returns assumptions, per scenario. Used by the admin "Investment & Returns" tab.
+//   shareholders     — number of equity partners (3 / 4 / 5 as planned).
+//   monthlyRevenue   — ILLUSTRATIVE expected monthly turnover (NPR). NOT researched — a planning guess.
+//   marginPct        — net operating margin (% of revenue left after running costs, before loan).
+// The funding split (equity vs loan) and loan rate are shared defaults below; all are editable
+// in the UI and saved per scenario in the browser.
+export const INVESTMENT_DEFAULTS = {
+  leaseout: { shareholders: 3, monthlyRevenue: 500000, marginPct: 22 },
+  lean: { shareholders: 4, monthlyRevenue: 1000000, marginPct: 25 },
+  full: { shareholders: 5, monthlyRevenue: 2200000, marginPct: 28 },
+}
+
+// Shared finance assumptions (editable in UI).
+//   equityPct    — share of total cost funded by shareholders' cash; the rest is a business loan.
+//   loanRatePct  — annual interest rate on the business loan (Nepal SME loans ~12–16%).
+export const FINANCE_DEFAULTS = { equityPct: 40, loanRatePct: 14 }

@@ -1,6 +1,38 @@
+import { useState } from 'react'
 import { BUSINESS } from '../data/plan.js'
 import AdminGate from './AdminGate.jsx'
 import CostTracker from './CostTracker.jsx'
+import InvestmentReturns from './InvestmentReturns.jsx'
+
+const TABS = [
+  { id: 'costs', label: 'Cost tracker' },
+  { id: 'invest', label: 'Investment & returns' },
+]
+
+function AdminTabs() {
+  const [tab, setTab] = useState('costs')
+  return (
+    <div>
+      <div className="mx-auto max-w-3xl px-5 pt-8">
+        <div className="inline-flex rounded-xl border border-leaf-200 bg-white p-1">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={
+                'rounded-lg px-4 py-1.5 text-sm font-semibold transition ' +
+                (t.id === tab ? 'bg-leaf-700 text-white shadow-sm' : 'text-leaf-700 hover:bg-leaf-100')
+              }
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      {tab === 'costs' ? <CostTracker /> : <InvestmentReturns />}
+    </div>
+  )
+}
 
 export default function AdminView() {
   return (
@@ -17,7 +49,7 @@ export default function AdminView() {
         </div>
       </header>
       <AdminGate>
-        <CostTracker />
+        <AdminTabs />
       </AdminGate>
     </div>
   )
