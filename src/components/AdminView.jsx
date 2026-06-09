@@ -4,11 +4,13 @@ import AdminGate from './AdminGate.jsx'
 import CostTracker from './CostTracker.jsx'
 import InvestmentReturns from './InvestmentReturns.jsx'
 import Timeline from './Timeline.jsx'
+import SalesTracker from './SalesTracker.jsx'
 
 const TABS = [
   { id: 'costs', label: 'Cost tracker' },
   { id: 'invest', label: 'Investment & returns' },
   { id: 'timeline', label: 'Timeline' },
+  { id: 'sales', label: 'Sales tracker' },
 ]
 
 function AdminTabs() {
@@ -16,7 +18,7 @@ function AdminTabs() {
   return (
     <div>
       <div className="mx-auto max-w-3xl px-5 pt-8">
-        <div className="inline-flex rounded-xl border border-leaf-200 bg-white p-1">
+        <div className="inline-flex flex-wrap gap-1 rounded-xl border border-leaf-200 bg-white p-1">
           {TABS.map((t) => (
             <button
               key={t.id}
@@ -34,6 +36,7 @@ function AdminTabs() {
       {tab === 'costs' && <CostTracker />}
       {tab === 'invest' && <InvestmentReturns />}
       {tab === 'timeline' && <Timeline />}
+      {tab === 'sales' && <SalesTracker />}
     </div>
   )
 }

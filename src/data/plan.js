@@ -455,3 +455,23 @@ export const TIMELINE = {
     'Site surprises — verify clear title and highway access before signing, or the whole timeline resets.',
   ],
 }
+
+// Defaults for the admin "Sales tracker" what-if model (NPR, monthly).
+//   monthlyRevenue — starting point on the slider.
+//   cogsPct        — food & supplies as a % of revenue (scales with sales).
+//   fixedCosts     — monthly costs that don't move with sales (staff, rent, loan EMI, etc.).
+// All editable in the UI. Tuned for the 1 crore (Lean) plan; break-even ≈ NPR 6.2 lakh/month.
+export const SALES_DEFAULTS = {
+  monthlyRevenue: 1000000,
+  cogsPct: 35,
+  fixedCosts: [
+    { id: 'staff', label: 'Staff salaries (24/7 shifts)', amount: 150000 },
+    { id: 'rent', label: 'Rent / lease', amount: 50000 },
+    { id: 'utilities', label: 'Electricity & utilities', amount: 60000 },
+    { id: 'loan', label: 'Loan repayment (EMI)', amount: 100000 },
+    { id: 'misc', label: 'Maintenance & misc', amount: 40000 },
+  ],
+}
+
+// Monthly-revenue points shown in the sensitivity table (NPR): a weak month → a strong one.
+export const SALES_REVENUE_POINTS = [500000, 1000000, 1500000, 2000000, 2500000]
