@@ -3,10 +3,12 @@ import { BUSINESS } from '../data/plan.js'
 import AdminGate from './AdminGate.jsx'
 import CostTracker from './CostTracker.jsx'
 import InvestmentReturns from './InvestmentReturns.jsx'
+import Timeline from './Timeline.jsx'
 
 const TABS = [
   { id: 'costs', label: 'Cost tracker' },
   { id: 'invest', label: 'Investment & returns' },
+  { id: 'timeline', label: 'Timeline' },
 ]
 
 function AdminTabs() {
@@ -29,7 +31,9 @@ function AdminTabs() {
           ))}
         </div>
       </div>
-      {tab === 'costs' ? <CostTracker /> : <InvestmentReturns />}
+      {tab === 'costs' && <CostTracker />}
+      {tab === 'invest' && <InvestmentReturns />}
+      {tab === 'timeline' && <Timeline />}
     </div>
   )
 }

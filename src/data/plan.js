@@ -360,3 +360,98 @@ export const INVESTMENT_DEFAULTS = {
 //   equityPct    — share of total cost funded by shareholders' cash; the rest is a business loan.
 //   loanRatePct  — annual interest rate on the business loan (Nepal SME loans ~12–16%).
 export const FINANCE_DEFAULTS = { equityPct: 40, loanRatePct: 14 }
+
+// Project timeline for the 1 crore (Lean) plan. Week 0 = location confirmed.
+// startWeek/weeks place each phase on the schedule; some run in parallel.
+// `critical` marks the critical path (lease → loan → build → commission → launch → open).
+export const TIMELINE = {
+  planLabel: 'Lean plan (~NPR 1 crore)',
+  totalWeeks: 33, // ≈ 8 months base case
+  baseEstimate: '~7.5–8 months',
+  riskEstimate: '9–10 months if loan/grid/monsoon slip',
+  phases: [
+    {
+      id: 'lease',
+      name: 'Sign lease & take site handover',
+      startWeek: 0,
+      weeks: 4,
+      critical: true,
+      blockers: ['Clear land title / ownership dispute', 'Lease term & rent negotiation', 'Confirmed highway access / approach road'],
+    },
+    {
+      id: 'permits',
+      name: 'Business registration & permits',
+      startWeek: 2,
+      weeks: 6,
+      blockers: ['Ward / municipal approvals', 'Food & hospitality license', 'Road / environmental clearance if required'],
+    },
+    {
+      id: 'loan',
+      name: 'Loan proposal, sanction & disbursement',
+      startWeek: 2,
+      weeks: 12,
+      critical: true,
+      blockers: ['Bank due diligence & collateral valuation', 'Tranche-based disbursement delays the build start', 'Final interest rate / terms'],
+    },
+    {
+      id: 'grid',
+      name: 'NEA grid & transformer load sanction',
+      startWeek: 8,
+      weeks: 12,
+      blockers: ['NEA application backlog', 'Transformer availability / lead time', 'Load deposit fees'],
+    },
+    {
+      id: 'charger',
+      name: 'Procure & ship 60 kW dual-gun charger',
+      startWeek: 14,
+      weeks: 8,
+      blockers: ['Import & customs clearance', 'Vendor lead time', 'Forex / advance payment'],
+    },
+    {
+      id: 'build',
+      name: 'Construction & fit-out (~1,200 sq ft)',
+      startWeek: 14,
+      weeks: 14,
+      critical: true,
+      blockers: ['Monsoon delays (Jun–Sep)', 'Contractor reliability', 'Material price & availability'],
+    },
+    {
+      id: 'staff',
+      name: 'Hire & train staff',
+      startWeek: 24,
+      weeks: 4,
+      blockers: ['24/7 staffing in a semi-rural area', 'Training to service standard'],
+    },
+    {
+      id: 'commission',
+      name: 'Charger install & commissioning',
+      startWeek: 28,
+      weeks: 2,
+      critical: true,
+      blockers: ['NEA energization sign-off', 'Vendor commissioning schedule'],
+    },
+    {
+      id: 'soft',
+      name: 'Soft launch',
+      startWeek: 30,
+      weeks: 2,
+      critical: true,
+      blockers: ['Operational teething', 'Kitchen supply chain'],
+    },
+    {
+      id: 'open',
+      name: 'Grand opening (24/7)',
+      startWeek: 32,
+      weeks: 1,
+      critical: true,
+      blockers: ['Marketing & highway signage ready'],
+    },
+  ],
+  // The handful of things most likely to push the date out.
+  topRisks: [
+    'Loan disbursement timing — construction can’t start until funds land. This is the usual critical path; line up the bank early.',
+    'NEA grid / transformer lead time — can run 3+ months. Apply for the load sanction as soon as the lease is signed.',
+    'Monsoon (Jun–Sep) — slows civil work. Schedule foundations and structure outside the heavy-rain window.',
+    'Site surprises — verify clear title and highway access before signing, or the whole timeline resets.',
+  ],
+}
